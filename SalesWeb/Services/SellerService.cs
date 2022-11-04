@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SalesWeb.Services.Exceptions;
+using System.Security.Cryptography;
 
 namespace SalesWeb.Services
 {
@@ -36,9 +37,16 @@ namespace SalesWeb.Services
 
         public async Task RemoveAsync(int id)
         {
-            var obj = await _context.Seller.FindAsync(id);
-            _context.Seller.Remove(obj);
-           await _context.SaveChangesAsync();
+            try
+            {
+                var obj = await _context.Seller.FindAsync(id);
+                _context.Seller.Remove(obj);
+                await _context.SaveChangesAsync();
+            }
+            catch(DbUpdateException e)
+{
+                throw new IntegrityException("Could not delete seller. There are open sales");
+            }
         }
 
         public async Task UpdateAsync(Seller obj)
